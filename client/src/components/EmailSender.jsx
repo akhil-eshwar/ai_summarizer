@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import axios from 'axios'
+import { API_ENDPOINTS } from '../config/api'
 
 const EmailSender = ({ summary }) => {
   const [recipients, setRecipients] = useState([''])
@@ -53,23 +54,42 @@ const EmailSender = ({ summary }) => {
     setSuccess('')
 
     try {
-      const response = await axios.post('/api/email', {
+      const response = await axios.post(API_ENDPOINTS.email, {
         recipients: validRecipients,
         subject: subject.trim(),
         summary: summary.trim()
+      }, {
+        timeout: 30000, // 30 second timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
 
-      if (response.data.success) {
+      if (response.data && response.data.success) {
         setSuccess(`Email sent successfully to ${validRecipients.length} recipient(s)`)
         // Reset form
         setRecipients([''])
         setSubject('Meeting Summary')
       } else {
-        setError('Failed to send email')
+        setError('Failed to send email - Invalid response from server')
       }
     } catch (err) {
       console.error('Error sending email:', err)
-      setError(err.response?.data?.error || 'Failed to send email')
+      
+      if (err.code === 'ECONNABORTED') {
+        setError('Request timeout - Server is taking too long to respond')
+      } else if (err.response) {
+        // Server responded with error status
+        const status = err.response.status
+        const message = err.response.data?.error || err.response.data?.message || 'Unknown server error'
+        setError(`Server error (${status}): ${message}`)
+      } else if (err.request) {
+        // Request was made but no response received
+        setError('Cannot connect to server - Please check if the backend is running')
+      } else {
+        // Something else happened
+        setError(`Request failed: ${err.message}`)
+      }
     } finally {
       setSending(false)
     }

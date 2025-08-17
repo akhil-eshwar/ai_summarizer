@@ -1,11 +1,14 @@
 import React from 'react'
 import Home from './pages/Home'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Home />
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50">
+        <Home />
+      </div>
+    </ErrorBoundary>
   )
 }
 

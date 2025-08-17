@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import axios from 'axios'
+import { API_ENDPOINTS } from '../config/api'
 
 const SummaryEditor = ({ transcript, instruction, onSummaryGenerated }) => {
   const [summary, setSummary] = useState('')
@@ -21,20 +22,39 @@ const SummaryEditor = ({ transcript, instruction, onSummaryGenerated }) => {
     setError('')
 
     try {
-      const response = await axios.post('/api/summarize', {
+      const response = await axios.post(API_ENDPOINTS.summarize, {
         transcript: transcript.trim(),
         instruction: instruction.trim()
+      }, {
+        timeout: 30000, // 30 second timeout
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
 
-      if (response.data.success) {
+      if (response.data && response.data.success) {
         setSummary(response.data.summary)
         onSummaryGenerated(response.data.summary)
       } else {
-        setError('Failed to generate summary')
+        setError('Failed to generate summary - Invalid response from server')
       }
     } catch (err) {
       console.error('Error generating summary:', err)
-      setError(err.response?.data?.error || 'Failed to generate summary')
+      
+      if (err.code === 'ECONNABORTED') {
+        setError('Request timeout - Server is taking too long to respond')
+      } else if (err.response) {
+        // Server responded with error status
+        const status = err.response.status
+        const message = err.response.data?.error || err.response.data?.message || 'Unknown server error'
+        setError(`Server error (${status}): ${message}`)
+      } else if (err.request) {
+        // Request was made but no response received
+        setError('Cannot connect to server - Please check if the backend is running')
+      } else {
+        // Something else happened
+        setError(`Request failed: ${err.message}`)
+      }
     } finally {
       setLoading(false)
     }

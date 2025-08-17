@@ -3,6 +3,7 @@ import UploadTranscript from '../components/UploadTranscript'
 import InstructionInput from '../components/InstructionInput'
 import SummaryEditor from '../components/SummaryEditor'
 import EmailSender from '../components/EmailSender'
+import ConnectionStatus from '../components/ConnectionStatus'
 
 const Home = () => {
   const [transcript, setTranscript] = useState('')
