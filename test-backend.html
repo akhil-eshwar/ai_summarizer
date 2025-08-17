@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Test</title>
+</head>
+<body>
+    <h1>Backend API Test</h1>
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <button onclick="testSummarize()">Test Summarize Endpoint</button>
+    <div id="results"></div>
+
+    <script>
+        const BACKEND_URL = 'https://ai-summarizer-wtsk.onrender.com';
+        
+        async function testHealth() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/health`);
+                const data = await response.json();
+                document.getElementById('results').innerHTML = `<pre>Health: ${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<pre>Health Error: ${error.message}</pre>`;
+            }
+        }
+        
+        async function testSummarize() {
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/summarize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        transcript: 'This is a test transcript',
+                        instruction: 'Summarize this briefly'
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('results').innerHTML = `<pre>Summarize: ${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<pre>Summarize Error: ${error.message}</pre>`;
+            }
+        }
+    </script>
+</body>
+</html>
